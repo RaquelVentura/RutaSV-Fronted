@@ -1,0 +1,9 @@
+services:
+  frontend:
+    build: .
+    ports:
+      - "${FRONTEND_PORT:-5173}:8080"
+    environment:
+      API_UPSTREAM: ${API_UPSTREAM:-http://host.docker.internal:8080}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
