@@ -1,8 +1,9 @@
-# Solo para probar la imagen del frontend en tu PC.
-# Sin backend, las rutas /api responden 502 y el resto de la página funciona.
-# Para probar con el backend real se agrega este servicio al compose completo (ver guía).
 services:
   frontend:
     build: .
     ports:
-      - "5173:80"
+      - "${FRONTEND_PORT:-5173}:8080"
+    environment:
+      API_UPSTREAM: ${API_UPSTREAM:-http://host.docker.internal:8080}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
