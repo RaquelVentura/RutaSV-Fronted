@@ -26,7 +26,8 @@ jobs:
           cache: npm
 
       - run: npm ci
-      - run: npm run lint
+      - name: Ejecución de linter
+        run: npm run lint
       - run: npm test
       - run: npm run build
 
