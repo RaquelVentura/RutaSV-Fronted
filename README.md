@@ -1,16 +1,61 @@
-# React + Vite
+# RutaSV – Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+SPA en React + Vite del marketplace de experiencias turísticas RutaSV.
+Solo consume la API REST; el backend (.NET) vive en otro repositorio y corre en su propio contenedor.
 
-Currently, two official plugins are available:
+**Stack:** React, Vite, React Router, TailwindCSS, Vitest + React Testing Library, Nginx (en producción).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Requisitos
 
-## React Compiler
+- Node 22 (`.nvmrc`)
+- Docker (opcional, para probar la imagen)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Desarrollo local
 
-## Expanding the ESLint configuration
+```bash
+npm install
+cp .env.example .env  
+npm run dev
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Vite redirige `/api/*` al backend quitando el prefijo `/api` (igual que Nginx en producción),
+así el código siempre llama a `/api/...` sin importar el entorno.
+
+## Scripts
+
+| Comando | Qué hace |
+|---|---|
+| `npm run dev` | Servidor de desarrollo |
+| `npm run build` | Build de producción en `dist/` |
+| `npm run lint` | ESLint |
+| `npm test` | Pruebas con Vitest |
+
+## Docker
+
+La imagen sirve la SPA con Nginx (sin root, puerto interno 8080) y reenvía `/api` al backend.
+Variables de entorno de la imagen:
+
+| Variable | Por defecto | Descripción |
+|---|---|---|
+| `API_UPSTREAM` | `http://api:8080` | URL del backend |
+| `PORT` | `8080` | Puerto de Nginx dentro del contenedor |
+| `DNS_RESOLVER` | `127.0.0.11` | DNS de Docker |
+
+Probar solo el frontend (con el backend corriendo aparte en tu PC, puerto 8080):
+
+```bash
+docker compose up --build
+```
+
+Abre http://localhost:5173. Para apuntar a otro backend, define `API_UPSTREAM` en `.env`
+(en el compose completo del proyecto es `http://api:8080`).
+
+## CI
+
+GitHub Actions (`.github/workflows/ci.yml`) en cada PR y push a `develop`/`main`:
+lint, pruebas, build y construcción de la imagen Docker con una prueba de humo.
+
+## Flujo de trabajo
+
+GitHub Flow: `main` (estable), `develop` (integración) y `feature/*` por historia.
+Todo cambio entra por Pull Request con revisión; commits con Conventional Commits.
