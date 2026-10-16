@@ -1,4 +1,3 @@
-# Se evalúa en el contexto "http" (la imagen lo incluye desde conf.d)
 map $http_x_forwarded_proto $forwarded_proto {
   default $http_x_forwarded_proto;
   ''      $scheme;
@@ -9,17 +8,15 @@ server {
   root /usr/share/nginx/html;
   index index.html;
 
-  # Subida de fotos de experiencias (HU-13) pasa por aquí hacia la API
   client_max_body_size 10m;
 
   gzip on;
   gzip_types text/css application/javascript application/json image/svg+xml;
 
-  # --- API ---
-  # El frontend llama a /api/...; Nginx quita el prefijo /api y reenvía al backend,
-  # cuyos endpoints están documentados sin prefijo (GET /experiencias, /categorias...).
-  # Si el backend adopta el prefijo /api, borrar solo la línea "rewrite".
-  # Se resuelve el nombre en cada petición: el frontend arranca aunque la API aún no esté lista.
+  add_header X-Content-Type-Options "nosniff" always;
+  add_header X-Frame-Options "SAMEORIGIN" always;
+  add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
   resolver ${DNS_RESOLVER} valid=10s;
   set $api_upstream ${API_UPSTREAM};
 
@@ -32,15 +29,13 @@ server {
     proxy_set_header X-Forwarded-Proto $forwarded_proto;
   }
 
-  # Archivos generados por Vite (llevan hash en el nombre): caché larga
   location /assets/ {
-    add_header Cache-Control "public, max-age=31536000, immutable";
+    expires 1y;
     try_files $uri =404;
   }
 
-  # SPA: cualquier otra ruta cae en index.html (React Router)
   location / {
-    add_header Cache-Control "no-cache";
+    expires -1;
     try_files $uri /index.html;
   }
 }
