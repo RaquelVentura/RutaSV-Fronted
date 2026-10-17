@@ -12,6 +12,7 @@ env:
 
 permissions:
   contents: read
+  packages: write # Permite subir imágenes a GitHub Container Registry
 
 concurrency:
   group: ci-${{ github.ref }}
