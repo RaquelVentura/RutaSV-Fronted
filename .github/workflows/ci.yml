@@ -68,11 +68,19 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      - name: Smoke test del contenedor
+      # Smoke test del contenedor, obtiene el segundo tag generado y lo usa para levantar un contenedor y hacer un par de requests
+      - name: Smoke test del contenedor 
+        env:
+          IMAGE: ${{ steps.meta.outputs.tags }}
         run: |
-          docker run -d --name frontend -p 8080:8080 rutasv-frontend:ci
+          IMAGE="$(printf '%s\n' "$IMAGE" | sed -n '2p')"
+          echo "Usando imagen: $IMAGE"
+          docker pull "$IMAGE"
+          docker run -d --name frontend -p 8080:8080 "$IMAGE"
           for i in $(seq 1 15); do
-            curl -fsS http://localhost:8080/ >/dev/null && break
+            if curl -fsS http://localhost:8080/ >/dev/null; then
+              break
+            fi
             sleep 2
           done
           curl -fsS http://localhost:8080/ | grep -q '<div id="root">'
